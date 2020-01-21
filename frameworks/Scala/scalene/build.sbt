@@ -1,6 +1,7 @@
-//resolvers += "scalene" at "https://maven.pkg.github.com/DanSimon/Scalene"
+resolvers += "scalene" at "https://maven.pkg.github.com/DanSimon/Scalene"
 
-val ScaleneVersion = "0.1.0-SNAPSHOT"
+
+val ScaleneVersion = "0.1.2-SNAPSHOT"
 
 scalaVersion := "2.12.10"
 
