@@ -30,7 +30,7 @@ object Main extends App {
   val settings = Settings.basic(
     serverName = "scalene",
     port = 8080,
-    server = ServerSettings.Default.copy(numWorkers = Some(8))
+    server = ServerSettings.Default
   )
 
   

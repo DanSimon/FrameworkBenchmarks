@@ -3,11 +3,12 @@ val scaleneUri = uri("https://github.com/DanSimon/Scalene.git")
 lazy val scaleneRouting = ProjectRef(scaleneUri,"scalene-routing")
 lazy val scaleneSQL = ProjectRef(scaleneUri,"scalene-sql")
 
-lazy val root = (project in file("."))
+lazy val `scalene-benchmark` = (project in file("."))
   .dependsOn(scaleneRouting)
   .dependsOn(scaleneSQL)
 
 scalaVersion := "2.12.10"
+version := "0.1.0-SNAPSHOT"
 
 libraryDependencies ++= Seq(
   "org.postgresql" % "postgresql"        % "42.2.0",

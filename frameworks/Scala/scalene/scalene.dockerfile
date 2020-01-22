@@ -16,4 +16,4 @@ COPY project project
 COPY src src
 COPY build.sbt build.sbt
 RUN sbt assembly -batch
-CMD ["java", "-server", "-jar", "target/scala-2.12/scalene-assembly-0.1.0-SNAPSHOT.jar"]
+CMD ["java", "-server", "-jar", "target/scala-2.12/scalene-benchmark-assembly-0.1.0-SNAPSHOT.jar"]
