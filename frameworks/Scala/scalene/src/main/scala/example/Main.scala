@@ -46,7 +46,7 @@ object Main extends App {
   
   def randomWorld(session: MiniSQLSession): Option[DBRouteMessage] = {
     val stmt = session.prepared("SELECT id, randomnumber FROM world WHERE id = (?)")
-    stmt.setInt(1, math.abs(random.nextInt) % 10000)
+    stmt.setInt(1, math.abs(random.nextInt) % 10000 + 1)
     val rs = stmt.executeQuery()
     if (rs.next()) {
       Some(DBRouteMessage(rs.getInt(1), rs.getInt(2)))
