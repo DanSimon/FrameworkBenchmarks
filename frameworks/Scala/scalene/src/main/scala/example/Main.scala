@@ -61,9 +61,8 @@ object Main extends App {
     }
   }
 
-
   val QueryNum = ![Int]
-    .filter{i => i >= 1 && i <= 500}
+    .map{i => if (i < 1) 1 else if (i > 500) 500 else i}
     .recover{_ => 1}
 
   val multiRoute = GET / "queries" / QueryNum to {num =>
