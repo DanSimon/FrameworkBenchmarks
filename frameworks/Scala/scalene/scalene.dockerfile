@@ -2,6 +2,10 @@ FROM adoptopenjdk/openjdk13
 
 ARG SBT_VERSION=1.3.7
 
+RUN \
+  apt-get update && \
+  apt-get -y install git
+
 # Install sbt
 RUN \
   curl -L -o sbt-$SBT_VERSION.deb https://dl.bintray.com/sbt/debian/sbt-$SBT_VERSION.deb && \
