@@ -12,9 +12,7 @@ All source for this test is in [Benchmark.scala](src/main/scala/Benchmark.scala)
 
 Dependencies are defined in [build.sbt](build.sbt).
 
-##
-
-Test URLs
+## Test URLs
 
 * Plaintext - `http://localhost:8080/plaintext`
 * JSON - `http://localhost:8080/json`
