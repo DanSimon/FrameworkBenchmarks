@@ -1,4 +1,4 @@
-val scaleneUri = uri("https://github.com/DanSimon/Scalene.git")
+val scaleneUri = uri("https://github.com/DanSimon/Scalene.git#0.1.3")
 
 lazy val scaleneRouting = ProjectRef(scaleneUri,"scalene-routing")
 lazy val scaleneSQL = ProjectRef(scaleneUri,"scalene-sql")
