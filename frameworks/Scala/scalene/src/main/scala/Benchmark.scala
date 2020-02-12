@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import scalene.actor.Pool
 import scalene.routing._
-import scalene.http.{Body, BodyFormatter, ContentType}
+import scalene.http._
+import scalene._
 import scalene.sql._
 import BasicConversions._
 
@@ -24,14 +25,14 @@ object Main extends App {
         case MultiDBRouteMessage(items) => items
         case other => other
       }
-      Body(mapper.writeValueAsBytes(obj), Some(ContentType.`application/json`))
+      scalene.http.Body(mapper.writeValueAsBytes(obj), Some(ContentType.`application/json`))
     }
   }
 
   val settings = Settings.basic(
     serverName = "scalene",
     port = 8080,
-    server = ServerSettings.Default
+    server = scalene.ServerSettings.Default
   )
 
   
@@ -72,7 +73,7 @@ object Main extends App {
     }
   }
 
-  val plainBody = Body.plain("Hello, World!")
+  val plainBody = scalene.http.Body.plain("Hello, World!")
 
   val routes = Routes(
     GET / "plaintext" to {_ => plainBody.ok},
@@ -80,7 +81,28 @@ object Main extends App {
     dbRoute,
     multiRoute
   )
+  val s = HttpServer.start(settings, implicit context => new RequestHandler[HttpRequest, HttpResponse] {
 
-  Routing.start(settings, routes)
+      val matchUrl = "GET /plaintext".getBytes
+      def onInitialize(context: RequestHandlerContext){
+      }
+
+      def handleRequest(request: HttpRequest): Async[HttpResponse] = {
+        if (java.util.Arrays.equals(request.firstLine, 0, matchUrl.length, matchUrl, 0, matchUrl.length)) {
+          Async.successful(HttpResponse(ResponseCode.Ok, plainBody))
+        } else {
+          Async.successful(HttpResponse(ResponseCode.NotFound, http.Body.plain("not found")))
+        }
+      }
+
+      def handleError(request: Option[HttpRequest], error: Throwable) =
+        HttpResponse(ResponseCode.Error, http.Body.plain(error.toString))
+
+    })
+
+  //Routing.start(settings, routes)
+  pool.join
+
+
 }
 
