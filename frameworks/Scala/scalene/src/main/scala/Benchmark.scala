@@ -129,15 +129,25 @@ object Main extends App {
     }
 
     var n = 0
+    val arr = new Array[Byte](1024)
+    var arrPos = 0
+
     def onReadData(buffer: ReadBuffer, wopt: Option[WriteBuffer]): Unit = {
       while (buffer.buffer.hasRemaining) {
         val b = buffer.buffer.get
+        arr(arrPos) = b
+        arrPos += 1
         if (b == '\n'.toByte || b == '\r'.toByte) {
           n += 1
           if (n == 4) {
-            codec.encode(HttpResponse(ResponseCode.Ok, plainBody), wopt.get)
+            if (java.util.Arrays.equals(arr, 0, matchUrl.length, matchUrl, 0, matchUrl.length)) {
+              codec.encode(HttpResponse(ResponseCode.Ok, plainBody), wopt.get)
+            } else {
+              codec.encode(HttpResponse(ResponseCode.NotFound, http.Body.plain("not found")), wopt.get)
+            }
             n = 0
-          } 
+            arrPos = 0
+          }
         } else {
           n = 0
         }
