@@ -6,6 +6,7 @@ import scalene.actor.Pool
 import scalene.routing._
 import scalene.http._
 import scalene._
+import scalene.util._
 import scalene.sql._
 import BasicConversions._
 
@@ -37,6 +38,9 @@ object Main extends App {
 
   
   implicit val pool = new Pool
+
+  def basicServer = {
+
   val worldClient = MiniSQL.client(
     "world-client",
     "jdbc:postgresql://tfb-database:5432/hello_world",
@@ -73,7 +77,6 @@ object Main extends App {
     }
   }
 
-  val plainBody = scalene.http.Body.plain("Hello, World!")
 
   val routes = Routes(
     GET / "plaintext" to {_ => plainBody.ok},
@@ -81,7 +84,13 @@ object Main extends App {
     dbRoute,
     multiRoute
   )
-  val s = HttpServer.start(settings, implicit context => new RequestHandler[HttpRequest, HttpResponse] {
+
+
+  }
+
+  val plainBody = scalene.http.Body.plain("Hello, World!")
+
+  def coreServer = HttpServer.start(settings, implicit context => new RequestHandler[HttpRequest, HttpResponse] {
 
       val matchUrl = "GET /plaintext".getBytes
       def onInitialize(context: RequestHandlerContext){
@@ -101,6 +110,41 @@ object Main extends App {
     })
 
   //Routing.start(settings, routes)
+  //
+
+  def minimalCoreServer = Server.start(scalene.ServerSettings.Default.copy(port = 8080), context => new ServerConnectionHandler {
+    def onInitialize(env: AsyncContext){}
+
+    val codec = new HttpServerCodec(processRequest, context.time, Nil.toArray)
+    val matchUrl = "GET /plaintext".getBytes
+
+    var wOpt: Option[WriteBuffer] = None
+
+    def processRequest(request: HttpRequest): Unit = {
+      if (java.util.Arrays.equals(request.firstLine, 0, matchUrl.length, matchUrl, 0, matchUrl.length)) {
+        codec.encode(HttpResponse(ResponseCode.Ok, plainBody), wOpt.get)
+      } else {
+        codec.encode(HttpResponse(ResponseCode.NotFound, http.Body.plain("not found")), wOpt.get)
+      }
+    }
+
+    def onReadData(buffer: ReadBuffer, wopt: Option[WriteBuffer]): Unit = {
+      wOpt = wopt
+      codec.decode(buffer)
+    }
+
+    def onWriteData(buffer: WriteBuffer): Boolean = false
+
+    def onConnected(handle: ConnectionHandle) = {}
+
+    def onDisconnected(reason: DisconnectReason) = {}
+
+    def idleTimeout: scala.concurrent.duration.Duration = scala.concurrent.duration.Duration.Inf
+
+  },new RefreshOnDemandTimeKeeper(new RealTimeKeeper) )
+
+
+  val server = minimalCoreServer
   pool.join
 
 
