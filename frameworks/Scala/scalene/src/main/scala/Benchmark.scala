@@ -128,9 +128,23 @@ object Main extends App {
       }
     }
 
+    var n = 0
     def onReadData(buffer: ReadBuffer, wopt: Option[WriteBuffer]): Unit = {
-      wOpt = wopt
-      codec.decode(buffer)
+      while (buffer.buffer.hasRemaining) {
+        val b = buffer.buffer.get
+        if (b == '\n'.toByte || b == '\r'.toByte) {
+          n += 1
+          if (n == 4) {
+            codec.encode(HttpResponse(ResponseCode.Ok, plainBody), wopt.get)
+            n = 0
+          } 
+        } else {
+          n = 0
+        }
+
+      }
+      //wOpt = wopt
+      //codec.decode(buffer)
     }
 
     def onWriteData(buffer: WriteBuffer): Boolean = false
