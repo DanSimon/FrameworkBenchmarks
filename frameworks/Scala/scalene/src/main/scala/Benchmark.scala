@@ -115,7 +115,7 @@ object Main extends App {
   def minimalCoreServer = Server.start(scalene.ServerSettings.Default.copy(port = 8080), context => new ServerConnectionHandler {
     def onInitialize(env: AsyncContext){}
 
-    val codec = new HttpServerCodec(processRequest, context.time, List(new DateHeader, Header("Server", "scalene")).toArray)
+    val codec = new HttpServerCodec(processRequest, context.time, List(new DateHeader, scalene.http.Header("Server", "scalene")).toArray)
     val matchUrl = "GET /plaintext".getBytes
 
     var wOpt: Option[WriteBuffer] = None
