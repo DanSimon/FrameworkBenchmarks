@@ -33,59 +33,18 @@ object Main extends App {
   val settings = Settings.basic(
     serverName = "scalene",
     port = 8080,
-    server = scalene.ServerSettings.Default
+    server = scalene.ServerSettings.Default.copy(numWorkers = Some(1))
   )
 
   
   implicit val pool = new Pool
 
   def basicServer = {
-
-  val worldClient = MiniSQL.client(
-    "world-client",
-    "jdbc:postgresql://tfb-database:5432/hello_world",
-    "benchmarkdbuser",
-    "benchmarkdbpass"
-  )
-
-  val random = new java.util.Random
-  
-  def randomWorld(session: MiniSQLSession): Option[DBRouteMessage] = {
-    val stmt = session.prepared("SELECT id, randomnumber FROM world WHERE id = (?)")
-    stmt.setInt(1, math.abs(random.nextInt) % 10000 + 1)
-    val rs = stmt.executeQuery()
-    if (rs.next()) {
-      Some(DBRouteMessage(rs.getInt(1), rs.getInt(2)))
-    } else {
-      None
-    }      
-  }
-
-  val dbRoute = GET / "db" to {_ =>
-    worldClient.query{session =>
-      randomWorld(session).map{_.ok}.getOrElse("N/A".notFound)
-    }
-  }
-
-  val QueryNum = ![Int]
-    .map{i => if (i < 1) 1 else if (i > 500) 500 else i}
-    .recover{_ => 1}
-
-  val multiRoute = GET / "queries" / QueryNum to {num =>
-    worldClient.query{session =>
-      MultiDBRouteMessage(Array.fill(num)(randomWorld(session).get)).ok
-    }
-  }
-
-
-  val routes = Routes(
-    GET / "plaintext" to {_ => plainBody.ok},
-    GET / "json"      to {_ => JsonRouteMessage("Hello, World!").ok},
-    dbRoute,
-    multiRoute
-  )
-
-
+    val routes = Routes(
+      GET / "plaintext" to {_ => plainBody.ok},
+      GET / "json"      to {_ => JsonRouteMessage("Hello, World!").ok}
+    )
+    Routing.startDetached(settings, routes)
   }
 
   val plainBody = scalene.http.Body.plain("Hello, World!")
@@ -112,7 +71,7 @@ object Main extends App {
   //Routing.start(settings, routes)
   //
 
-  def minimalCoreServer = Server.start(scalene.ServerSettings.Default.copy(port = 8080), context => new ServerConnectionHandler {
+  def minimalCoreServer = Server.start(scalene.ServerSettings.Default.copy(port = 8080, numWorkers = Some(1)), context => new ServerConnectionHandler {
     def onInitialize(env: AsyncContext){}
 
     val codec = new HttpServerCodec(processRequest, context.time, List(new DateHeader, scalene.http.Header("Server", "scalene")).toArray)
@@ -168,7 +127,7 @@ object Main extends App {
   },new RefreshOnDemandTimeKeeper(new RealTimeKeeper) )
 
 
-  val server = minimalCoreServer
+  val server = basicServer//minimalCoreServer
   pool.join
 
 
